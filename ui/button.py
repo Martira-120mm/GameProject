@@ -1,80 +1,46 @@
-# ui/button.py — переиспользуемый компонент кнопки
-
 import pygame
-from settings import COLOR_BTN_NORMAL, COLOR_BTN_HOVER, COLOR_BTN_DISABLED, COLOR_TEXT_MAIN
-
+from core.settings import *
 
 class Button:
-    """
-    Прямоугольная кнопка с текстом.
-
-    Параметры:
-        x, y        — позиция левого верхнего угла
-        width, height
-        text        — надпись на кнопке
-        color       — обычный цвет фона
-        hover_color — цвет при наведении мыши
-        font        — pygame.font.Font (если None — создаётся дефолтный)
-        enabled     — если False, кнопка серая и не реагирует на клики
-    """
-
-    def __init__(
-        self,
-        x: int, y: int,
-        width: int, height: int,
-        text: str,
-        color=COLOR_BTN_NORMAL,
-        hover_color=COLOR_BTN_HOVER,
-        font: pygame.font.Font = None,
-        enabled: bool = True,
-    ):
-        self.rect        = pygame.Rect(x, y, width, height)
-        self.text        = text
-        self.color       = color
+    def __init__(self, rect, text, callback, font=None,
+                 normal_color=GRAY, hover_color=LIGHT_GRAY, pressed_color=BLUE,
+                 text_color=BLACK):
+        self.rect = pygame.Rect(rect)
+        self.text = text
+        self.callback = callback
+        self.font = font if font else pygame.font.Font(None, 32)
+        self.normal_color = normal_color
         self.hover_color = hover_color
-        self.enabled     = enabled
+        self.pressed_color = pressed_color
+        self.text_color = text_color
 
-        # Если шрифт не передан — создаём системный
-        self.font = font or pygame.font.SysFont("segoeui", 20)
+        self.is_hovered = False
+        self.is_pressed = False
 
-    # ------------------------------------------------------------------
-    # Проверка клика
-    # ------------------------------------------------------------------
-    def is_clicked(self, events) -> bool:
-        """
-        Возвращает True, если в списке событий есть клик мышью по кнопке.
-        Принимает список pygame-событий из игрового цикла.
-        """
-        if not self.enabled:
-            return False
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.rect.collidepoint(event.pos):
-                    return True
-        return False
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            self.is_hovered = self.rect.collidepoint(event.pos)
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
+                self.is_pressed = True
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self.is_pressed and self.rect.collidepoint(event.pos):
+                self.callback()
+            self.is_pressed = False
 
-    # ------------------------------------------------------------------
-    # Отрисовка
-    # ------------------------------------------------------------------
+    def update(self, dt):
+        pass
+
     def draw(self, screen):
-        mouse_pos = pygame.mouse.get_pos()
+        color = self.normal_color
+        if self.is_pressed:
+            color = self.pressed_color
+        elif self.is_hovered:
+            color = self.hover_color
 
-        # Выбираем цвет
-        if not self.enabled:
-            bg_color = COLOR_BTN_DISABLED
-        elif self.rect.collidepoint(mouse_pos):
-            bg_color = self.hover_color
-        else:
-            bg_color = self.color
+        pygame.draw.rect(screen, color, self.rect)
+        pygame.draw.rect(screen, BLACK, self.rect, 2)
 
-        # Фон кнопки
-        pygame.draw.rect(screen, bg_color, self.rect, border_radius=8)
-
-        # Рамка
-        border_color = (255, 255, 255, 60) if self.enabled else (80, 80, 80)
-        pygame.draw.rect(screen, border_color, self.rect, width=1, border_radius=8)
-
-        # Текст — центрируем
-        text_surf = self.font.render(self.text, True, COLOR_TEXT_MAIN)
+        text_surf = self.font.render(self.text, True, self.text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
