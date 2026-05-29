@@ -9,7 +9,7 @@ class DialogBox:
         self.small_font = small_font or pygame.font.Font(None, 24)
 
         # Размеры окна диалога
-        self.width = screen_rect.width - 100
+        self.width = screen_rect.width - 350
         self.height = 180
         self.rect = pygame.Rect(
             (screen_rect.width - self.width) // 2,

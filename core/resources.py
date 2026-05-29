@@ -2,6 +2,15 @@ import pygame
 import json
 import os
 from core.settings import *
+import sys
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 
 class ResourceManager:
     images = {}
@@ -29,13 +38,13 @@ class ResourceManager:
             original_size = img.get_size()
             if target_size and original_size != target_size:
                 if fit_mode == "stretch":
-                    img = pygame.transform.scale(img, target_size)
+                    img = pygame.transform.smoothscale(img, target_size)
                 elif fit_mode == "contain":
                     img = cls._fit_contain(img, target_size)
                 elif fit_mode == "cover":
                     img = cls._fit_cover(img, target_size)
                 else:
-                    img = pygame.transform.scale(img, target_size)
+                    img = pygame.transform.smoothscale(img, target_size)
             return img
         except (pygame.error, FileNotFoundError) as e:
             print(f"⚠️ Не удалось загрузить '{filename}': {e}")
@@ -51,7 +60,7 @@ class ResourceManager:
         target_rect = pygame.Rect(0, 0, *target_size)
         scale = min(target_rect.width / surf_rect.width, target_rect.height / surf_rect.height)
         new_size = (int(surf_rect.width * scale), int(surf_rect.height * scale))
-        scaled = pygame.transform.scale(surface, new_size)
+        scaled = pygame.transform.smoothscale(surface, new_size)
         result = pygame.Surface(target_size, pygame.SRCALPHA)
         result.fill((0, 0, 0, 0))
         pos = ((target_size[0] - new_size[0]) // 2, (target_size[1] - new_size[1]) // 2)
@@ -64,7 +73,7 @@ class ResourceManager:
         target_rect = pygame.Rect(0, 0, *target_size)
         scale = max(target_rect.width / surf_rect.width, target_rect.height / surf_rect.height)
         new_size = (int(surf_rect.width * scale), int(surf_rect.height * scale))
-        scaled = pygame.transform.scale(surface, new_size)
+        scaled = pygame.transform.smoothscale(surface, new_size)
         result = pygame.Surface(target_size, pygame.SRCALPHA)
         result.fill((0, 0, 0, 0))
         pos = ((target_size[0] - new_size[0]) // 2, (target_size[1] - new_size[1]) // 2)
@@ -78,7 +87,7 @@ class ResourceManager:
             "cabinet_bg.png", (SCREEN_WIDTH, SCREEN_HEIGHT), (100, 100, 150), fit_mode="cover"
         )
         cls.images["corridor_bg"] = cls._load_image(
-            "corridor_bg.png", (SCREEN_WIDTH, SCREEN_HEIGHT), (150, 100, 100), fit_mode="cover"
+            "corridor_bg.png", (SCREEN_WIDTH, SCREEN_HEIGHT), (150, 100, 100), fit_mode="contain"
         )
         cls.images["tutor_bg"] = cls._load_image(
             "tutor_bg.png", (SCREEN_WIDTH, SCREEN_HEIGHT), (100, 150, 100), fit_mode="cover"
@@ -100,10 +109,8 @@ class ResourceManager:
         # Батарейки
         battery_sizes = (32, 32)
         cls.images["battery"] = [
-            cls._load_image("battery_0.png", battery_sizes, (255, 0, 0)),
-            cls._load_image("battery_20.png", battery_sizes, (255, 165, 0)),
+            cls._load_image("battery_20.png", battery_sizes, (255, 0, 0)),
             cls._load_image("battery_40.png", battery_sizes, (255, 255, 0)),
-            cls._load_image("battery_60.png", battery_sizes, (173, 255, 47)),
             cls._load_image("battery_80.png", battery_sizes, (0, 255, 0)),
         ]
 
@@ -182,3 +189,9 @@ class ResourceManager:
             else:
                 return ""
         return data
+    
+    @classmethod
+    def _get_assets_path(cls, subfolder=""):
+        # Используем resource_path для получения базового пути
+        base_path = resource_path("assets")
+        return os.path.join(base_path, subfolder)

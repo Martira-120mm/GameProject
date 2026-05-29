@@ -3,6 +3,7 @@ from core.game_state import State
 from core.settings import *
 from core.resources import ResourceManager
 from ui.button import Button
+from core.utils import rel_y, rel_x
 
 class CorridorState(State):
     def __init__(self, player, state_manager):
@@ -14,17 +15,20 @@ class CorridorState(State):
         self.font = ResourceManager.get_font("large")
 
         # Кнопки
-        btn_w, btn_h = 200, 60
-        center_x = SCREEN_WIDTH // 2 - btn_w // 2
         self.button_cabinet = Button(
-            pygame.Rect(center_x, 300, btn_w, btn_h),
-            "В кабинет",
-            self.go_to_cabinet
+            pygame.Rect(rel_x(300), rel_y(120), rel_x(150), rel_y(60)),
+            "",
+            self.go_to_cabinet,
+            alpha=99,
+            hover_color=LIGHT_GRAY,
+
         )
         self.button_tutor = Button(
-            pygame.Rect(center_x, 400, btn_w, btn_h),
-            "Тьюторская",
-            self.go_to_tutor
+            pygame.Rect(rel_x(640), rel_y(300), rel_x(200), rel_y(60)),
+            "",
+            self.go_to_tutor,
+            alpha=99,
+            hover_color=LIGHT_GRAY,
         )
 
     def go_to_cabinet(self):
@@ -47,8 +51,8 @@ class CorridorState(State):
         screen.blit(self.bg, (0, 0))
 
         # Заголовок
-        title = self.font.render("Коридор", True, WHITE)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH//2, 100))
+        title = self.font.render("Коридор", True, BLACK)
+        title_rect = title.get_rect(center=(rel_x(540), rel_y(50)))
         screen.blit(title, title_rect)
 
         self.button_cabinet.draw(screen)
@@ -56,6 +60,6 @@ class CorridorState(State):
 
         # Информация о ресурсах (кратко)
         info_font = ResourceManager.get_font("small")
-        info_text = f"Жетоны: {self.player.total_tokens}  Энергия: {int(self.player.energy)}"
+        info_text = f"Жетоны: {self.player.total_tokens}\n  Энергия: {int(self.player.energy)}"
         info_surf = info_font.render(info_text, True, WHITE)
         screen.blit(info_surf, (20, SCREEN_HEIGHT - 40))

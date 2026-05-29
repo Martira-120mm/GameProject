@@ -50,3 +50,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+generate.py
+project_structure.txt
